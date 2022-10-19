@@ -2,11 +2,18 @@
 #include <driver/pcnt.h>
 #include <freertos/task.h>
 
+
 #define PCNT_GPIO 4
 #define H_LIM_VALUE 1000
 #define L_LIM_VALUE -10
+
+#define callibration_factor  4.5
+
+float flowRate = 0.0;
  
 int unit;
+
+int pcnt_unit = PCNT_UNIT_0;
 
 static void PCNT_init(int unit)
 {
@@ -31,9 +38,50 @@ static void PCNT_init(int unit)
     pcnt_counter_resume(unit);
 }
 
+void calcul_task(void *prmtr)
+{
+   
+    
+    
+
+    static int16_t count = 0;
+    while(1)
+    {
+        pcnt_get_counter_value(pcnt_unit , &count);
+        printf(" pulsecount : %d \n", count );
+
+        flowRate = (((1000.0 / 1000) * count) / callibration_factor);
+        printf("flowrate : %f \n",flowRate);
+        
+
+        pcnt_counter_pause(unit);
+        pcnt_counter_clear(unit);
+        pcnt_counter_resume(unit);
+
+        vTaskDelay(1000/portTICK_PERIOD_MS);
+    }
+
+
+}
+
 void app_main()
 {
-    int pcnt_unit = PCNT_UNIT_0;
+    PCNT_init(pcnt_unit);
+
+
+    xTaskCreate(calcul_task , "calculation task" ,2048 , NULL , 1 ,NULL );
+
+
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  /*  int pcnt_unit = PCNT_UNIT_0;
     PCNT_init(pcnt_unit);
     
 
@@ -43,6 +91,6 @@ void app_main()
         pcnt_get_counter_value(pcnt_unit , &count);
         printf("%d \n", count );
         vTaskDelay(1000/portTICK_PERIOD_MS);
-    }
+    }*/
 }
 
