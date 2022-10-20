@@ -10,8 +10,10 @@
 #define callibration_factor  4.5
 
 float flowRate = 0.0;
- 
-int unit;
+float flowMilllilitres = 0.0;
+float totalMillilitres = 0.0; 
+float totalQuantity = 0.0;
+
 
 int pcnt_unit = PCNT_UNIT_0;
 
@@ -30,9 +32,7 @@ static void PCNT_init(int unit)
     };
     pcnt_unit_config(&pcnt_config);
 
-    pcnt_set_filter_value(unit ,10);
-    pcnt_filter_enable(unit);
-     
+    
     pcnt_counter_pause(unit);
     pcnt_counter_clear(unit);
     pcnt_counter_resume(unit);
@@ -41,24 +41,28 @@ static void PCNT_init(int unit)
 void calcul_task(void *prmtr)
 {
    
-    
-    
-
     static int16_t count = 0;
     while(1)
     {
         pcnt_get_counter_value(pcnt_unit , &count);
-        printf(" pulsecount : %d \n", count );
+        printf("pulsecount : %d \n", count );
 
         flowRate = (((1000.0 / 1000) * count) / callibration_factor);
         printf("flowrate : %f \n",flowRate);
-        
 
-        pcnt_counter_pause(unit);
-        pcnt_counter_clear(unit);
-        pcnt_counter_resume(unit);
+        flowMilllilitres = (flowRate / 60) * 1000;
+        
+        totalMillilitres = totalMillilitres + flowMilllilitres;
+         
+        totalQuantity = totalMillilitres /1000; 
+
+        pcnt_counter_pause(pcnt_unit);
+        pcnt_counter_clear( pcnt_unit);
+        pcnt_counter_resume(pcnt_unit);
 
         vTaskDelay(1000/portTICK_PERIOD_MS);
+
+        printf("quantity : %f \n",totalQuantity);
     }
 
 
