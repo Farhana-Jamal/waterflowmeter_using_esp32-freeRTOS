@@ -75,6 +75,10 @@ char Quantity[100];
 char quantityprnt[50];
 char totalqty[50];
 
+char src[50];
+char mid[50];
+char dest[50];
+
 
 
 void floatToString_quantity(void *prmtr)
@@ -133,6 +137,23 @@ void floatToString_flowrate(void *prmtr)
 	}
 
 
+}
+
+void task_concatenate()
+{
+    while(1)
+    {
+        strcpy(dest, rateOfFlow);
+        strcpy(mid , "\n");
+        strcpy(src , totalqty);
+
+        strcat(dest ,mid );
+        strcat(dest ,src);
+
+        printf("Final destination string : %s \n", dest);
+
+        vTaskDelay(1000/portTICK_PERIOD_MS);
+    }
 }
 
 int pcnt_unit = PCNT_UNIT_0;
@@ -280,8 +301,8 @@ void task_displayText(void *argtext)
 {   
 	while(1)
 	{
-    char *text = (char *)argtext;
-	printf("string : %s \n", rateOfFlow);
+    char *text = (char *)dest;
+	
     uint8_t text_len = strlen(text);
 
     uint8_t cur_page = 0;
@@ -348,8 +369,8 @@ void app_main(void)
 
 	xTaskCreate(floatToString_flowrate , "float to string_fr " , 2048 , NULL ,5 , NULL);
 	xTaskCreate(floatToString_quantity , "float to string_qty", 2048 , NULL, 5, NULL);
+    xTaskCreate(task_concatenate , "concatenate 2 string" , 2048 ,NULL ,5 , NULL);
 
-	// concatenate();
     
     i2c_master_init();
     ssd1306_init();
@@ -357,7 +378,7 @@ void app_main(void)
     xTaskCreate(&task_displayClear , "displayClear" , 2048 , NULL  , 5 , NULL);
     vTaskDelay(100/portTICK_PERIOD_MS);
 
-    xTaskCreate(&task_displayText ,"displayText" , 2048 , rateOfFlow , 5 , NULL);
+    xTaskCreate(&task_displayText ,"displayText" , 2048 , NULL , 5 , NULL);
     vTaskDelay(1000/portTICK_PERIOD_MS);
 	
 }
